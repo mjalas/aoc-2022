@@ -25,13 +25,23 @@ options = {
     'C Z': int(Choice.Rock.value) + int(ExpectedOutcome.Win.value)
 }
 
-
-def main():
+async def get_scores(choices: list[str]):
     result = 0
-    for line in input:
+    for line in choices:
         score = options[line.strip()]
         result += score
+    return result
+
+
+async def main():
+    result = 0
+    half_point = len(input) // 2
+    first_half, second_half = input[:half_point], input[half_point:]
+    t1 = asyncio.create_task(get_scores(first_half))
+    t2 = asyncio.create_task(get_scores(second_half))
+    results = await asyncio.gather(t1, t2)
+    result = results[0] + results[1]
     print(result)
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
