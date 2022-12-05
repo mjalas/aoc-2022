@@ -1,5 +1,6 @@
 from enum import Enum
-
+import asyncio
+from input import input
 
 class Choice(Enum):
     Rock = 1
@@ -83,17 +84,24 @@ def figure_out_choice(opponent: Choice, outcome: ExpectedOutcome) -> Choice:
                 case ExpectedOutcome.Loose:
                     return Choice.Paper
 
-def main():
-    with open('input.txt', 'r') as data:
-        your_score = 0
-        for line in data:
-            choices = line.strip().split(' ')
-            opponents_choice = opponent_choices[choices[0]]
-            your_choice = figure_out_choice(opponent=opponents_choice, outcome=expected_outcomes[choices[1]])
-            your_score += your_choice.value + battle_part1(opponents_choice, your_choice)
-        
-        print(f'Your score {your_score}')
+async def get_score_for_line_task(line: str):
+    
+    choices = line.strip().split(' ')
+    opponents_choice = opponent_choices[choices[0]]
+    your_choice = figure_out_choice(opponent=opponents_choice, outcome=expected_outcomes[choices[1]])
+    score = your_choice.value + battle_part1(opponents_choice, your_choice)
+    return score
 
+
+async def find_answer():
+    
+    tasks = [asyncio.create_task(get_score_for_line_task(line)) for line in input]
+    results = await asyncio.gather(*tasks)
+    result = sum(results)
+    print(f'score: {result}')
+
+def main():
+    asyncio.run(find_answer())
 
 if __name__ == '__main__':
     main()

@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
- func main() {
+func main() {
 	f, err := os.Open("input.txt")
     if err != nil {
         log.Fatal(err)
@@ -17,13 +17,35 @@ import (
 
     // read the file line by line using scanner
     scanner := bufio.NewScanner(f)
-
+	var l := []string{}
     for scanner.Scan() {
         // do something with a line
-        fmt.Printf("line: %s\n", scanner.Text())
-    }
+		var line = scanner.Text()
+		if line == "" {
+			fmt.Println("switch")
+		} else {
+			fmt.Println(line)
+			
+		}
+		// line := scanner.Text()
+		// if line == "" {
+		// 	sum := 0
+		// 	for e := l.Front(); e != nil; e = e.Next() {
+		// 		sum := sum + e
+		// 		fmt.Println(e)
+		// 	}
+		// } else {
+		// 	calories, err := strconv.Atoi(line)
+		// 	if err != nil {
+		// 		// ... handle error
+		// 		panic(err)
+		// 	}
+		// 	l.PushBack(calories)
+	}
+        // fmt.Printf("line: %s\n", scanner.Text())
+}
 
-    if err := scanner.Err(); err != nil {
-        log.Fatal(err)
-    }
- }
+    // if err := scanner.Err(); err != nil {
+    //     log.Fatal(err)
+    // }
+ 
