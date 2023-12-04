@@ -1,4 +1,4 @@
-from utils import parse_card_line
+from utils import parse_card_line, parse_card_line_v2
 
 
 def test_example_sol1():
@@ -52,7 +52,7 @@ def test_example_sol2():
     card_counts: dict[int, int] = {}
     for i, line in enumerate(input_str):
         expected_win_count = expected_wins_of_each[i]
-        card = parse_card_line(line)
+        card = parse_card_line_v2(line)
         if card.id not in card_counts:
             card_counts[card.id] = 1
         else:
@@ -74,3 +74,57 @@ def test_example_sol2():
 
     result = sum(list(card_counts.values()))
     assert result == expected_total
+
+
+def test_pattern_matching():
+    input_str = [
+        "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53\n",
+        "Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19\n",
+        "Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1\n",
+        "Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83\n",
+        "Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36\n",
+        "Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11\n",
+    ]
+
+    expected_wins_of_each = [4, 2, 2, 1, 0, 0]
+    for i, line in enumerate(input_str):
+        card = parse_card_line_v2(line)
+        assert card.id == i + 1
+        if i == 0:
+            assert card.winning_numbers == [41, 48, 83, 86, 17]
+            assert card.gotten_numbers == [83, 86, 6, 31, 17, 9, 48, 53]
+        assert card.wins == expected_wins_of_each[i]
+
+
+def test_long_card_line():
+    line = "Card   1:  5 27 94 20 50  7 98 41 67 34 | 34  9 20 90  7 77 44 71 27 12 98  1 79 96 24 51 25 84 67 41  5 13 78 31 26"
+    card = parse_card_line_v2(line)
+    assert card.id == 1
+    assert card.winning_numbers == [5, 27, 94, 20, 50, 7, 98, 41, 67, 34]
+    assert card.gotten_numbers == [
+        34,
+        9,
+        20,
+        90,
+        7,
+        77,
+        44,
+        71,
+        27,
+        12,
+        98,
+        1,
+        79,
+        96,
+        24,
+        51,
+        25,
+        84,
+        67,
+        41,
+        5,
+        13,
+        78,
+        31,
+        26,
+    ]

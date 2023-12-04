@@ -1,7 +1,7 @@
 import sys
 from typing import Sequence
 
-from utils import parse_card_line
+from utils import parse_card_line, parse_card_line_v2
 
 
 def solution_1(puzzle_input: Sequence) -> int:
@@ -15,7 +15,7 @@ def solution_1(puzzle_input: Sequence) -> int:
 def solution_2(puzzle_input: Sequence) -> int:
     card_counts: dict[int, int] = {}
     for line in puzzle_input:
-        card = parse_card_line(line)
+        card = parse_card_line_v2(line)
         if card.id not in card_counts:
             card_counts[card.id] = 1
         else:
