@@ -70,8 +70,8 @@ def push_values_through_pipes(seed: SeedPair, map: list[MapRange]) -> list[SeedP
     outputs: list[SeedPair] = []
     for i in range(len(map)):
         pipe = map[i]
-        if seed_start < pipe.source_start:
-            # we have a gap
+        if i == 0 and seed_start < pipe.source_start:
+            # we have a gap in front
             if seed_end < pipe.source_start:
                 # whole pair fits
                 outputs.append(
@@ -100,20 +100,46 @@ def push_values_through_pipes(seed: SeedPair, map: list[MapRange]) -> list[SeedP
                 outputs.append(SeedPair(start=seed_start, range_length=range_length))
                 # move start to one after pipes end
                 seed_start = pipe.source_end + 1
-                # check if at last pipe
-                if i + 1 >= len(map):
-                    # we run out of pipes -> pushing rest through directly
+
+                try:
+                    next_pipe = map[i + 1]
+
+                    if next_pipe.source_start - pipe.source_end > 1:
+                        # we found a gap
+                        if seed_end <= next_pipe.source_start:
+                            # whole pair fits
+                            outputs.append(
+                                SeedPair(
+                                    start=seed_start,
+                                    range_length=seed_end - seed_start + 1,
+                                )
+                            )
+                        else:
+                            new_end = next_pipe.source_start - 1
+                            outputs.append(
+                                SeedPair(
+                                    start=seed_start,
+                                    range_length=new_end - seed_start + 1,
+                                )
+                            )
+                            seed_start = next_pipe.source_start
+
+                except IndexError:
                     outputs.append(
                         SeedPair(
                             start=seed_start, range_length=seed_end - seed_start + 1
                         )
                     )
+                    seed_start = next_pipe.source_start
+
     return outputs
 
 
-def pipeline(seed: SeedPair, puzzle_input: PuzzleInputV2):
-    results = []
+def pipeline(seed: SeedPair, puzzle_input: PuzzleInputV2, results):
+    start_time = time.time()
+
     soils = push_values_through_pipes(seed, puzzle_input.seeds_to_soil)
+
     print(f"pushing soils, {len(soils)}")
     for soil in soils:
         fertilizers = push_values_through_pipes(soil, puzzle_input.soil_to_fertilizer)
@@ -141,26 +167,48 @@ def pipeline(seed: SeedPair, puzzle_input: PuzzleInputV2):
                             locations = push_values_through_pipes(
                                 humidity, puzzle_input.humidity_to_location
                             )
-
                             sub_minimi = None
                             for location in locations:
                                 if not sub_minimi or sub_minimi > location.start:
                                     sub_minimi = location.start
-                            results.append(sub_minimi)
-    return results
+                            if sub_minimi not in results:
+                                results.append(sub_minimi)
+    end_time = time.time()
+    print(f"{SeedPair} duration: {end_time-start_time}")
 
 
 def solution_2_v2(puzzle_input: PuzzleInputV2):
     results = []
     start_time = time.time()
-    print(f"pushing seeds, {len(puzzle_input.seeds_part_2)}")
-    for seed in puzzle_input.seeds_part_2:
-        result = pipeline(seed=seed, puzzle_input=puzzle_input)
-        results.extend(result)
-        break
+    manager = Manager()
+    results = manager.list()
+    processes: list[Process] = []
+
+    try:
+        for seed_pair in puzzle_input.seeds_part_2:
+            proc = Process(
+                target=pipeline,
+                args=(seed_pair, puzzle_input, results),
+            )
+            processes.append(proc)
+            proc.start()
+
+        for proc in processes:
+            proc.join()
+    except KeyboardInterrupt:
+        for proc in processes:
+            proc.kill()
+
+    # print(f"pushing seeds, {len(puzzle_input.seeds_part_2)}")
+    # for seed in puzzle_input.seeds_part_2:
+    #     result = pipeline(seed=seed, puzzle_input=puzzle_input)
+    #     results.extend(result)
+    #     break
+
     end_time = time.time()
     print(f"duration: {end_time-start_time}")
     results.sort()
+    print(f"results: {results}")
     print(f"solution 2: {results[0]}")
 
 
